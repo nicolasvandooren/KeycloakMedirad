@@ -1,0 +1,40 @@
+---
+# Ansible managed
+version: "3"
+services:
+  keycloak:
+    #image: "jboss/keycloak:4.5.0.Final"
+    image: "mykeycloak:latest"
+    ports:
+      - "8880:8080"
+      - "8843:8443"
+      #- "8990:8990"
+    env_file: docker-compose.env
+    environment:
+      - KEYCLOAK_HTTP_PORT=8880
+      - KEYCLOAK_HTTPS_PORT=8843
+      - MANAGEMENT_HTTP_PORT=8990
+    volumes:
+      - keycloak-standalone:/opt/keycloak/standalone
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+    labels:
+      - traefik.enable=true
+      - traefik.http.port=8080
+      - traefik.http.frontend.rule=PathPrefix:/auth
+      - traefik.http.frontend.entryPoints=http
+      - traefik.http.protocol=http
+      - traefik.https.port=8443
+      - traefik.https.frontend.rule=PathPrefix:/auth
+      - traefik.https.frontend.entryPoints=https
+      - traefik.https.protocol=https
+
+volumes:
+  keycloak-standalone:
+
+networks:
+  default:
+    external:
+      name: medirad
