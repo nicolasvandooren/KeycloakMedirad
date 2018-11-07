@@ -3,12 +3,11 @@
 version: "3"
 services:
   keycloak:
-    #image: "jboss/keycloak:4.5.0.Final"
-    image: "mykeycloak:latest"
+    image: "nicolasvandooren/keycloakmedirad"
     ports:
       - "8880:8080"
       - "8843:8443"
-      #- "8990:8990"
+      - "8990:8990"
     env_file: docker-compose.env
     environment:
       - KEYCLOAK_HTTP_PORT=8880
