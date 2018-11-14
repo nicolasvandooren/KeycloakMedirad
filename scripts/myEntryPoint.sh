@@ -1,5 +1,4 @@
 #!/bin/sh
-#https://www.keycloak.org/docs/latest/server_admin/index.html#the-admin-cli
 
 ./tools/docker-entrypoint.sh -b 0.0.0.0 > log &
 
@@ -16,7 +15,13 @@ if [[ -z "${CLIENT}" ]]; then
   CLIENT=irdbb-ui
 fi
 
-FIRST_LOGIN=changeme
+if [[ -z "${REDIRECTURIS}" ]]; then
+  REDIRECTURIS=*
+fi
+
+if [[ -z "${WEBORIGINS}" ]]; then
+  WEBORIGINS=*
+fi
 
 sleep 10
 
@@ -36,7 +41,7 @@ REALMS_PRESENTS="$(./keycloak/bin/kcadm.sh get realms --fields realm --format cs
 
 if [[ ! $REALMS_PRESENTS = *"${REALM}"* ]] ; then
   ./keycloak/bin/kcadm.sh create realms -s realm=${REALM} -s enabled=true -s registrationAllowed=true -s sslRequired=NONE
-  ./keycloak/bin/kcadm.sh create clients -r ${REALM} -s clientId=${CLIENT} -s enabled=true -s publicClient=true -s 'webOrigins=["*"]' -s 'redirectUris=["*"]' -s implicitFlowEnabled=true
+  ./keycloak/bin/kcadm.sh create clients -r ${REALM} -s clientId=${CLIENT} -s enabled=true -s publicClient=true -s 'webOrigins=["'${WEBORIGINS}'"]' -s 'redirectUris=["'${REDIRECTURIS}'"]'
 fi
 
 userlists=/run/secrets/users_lists
