@@ -55,9 +55,13 @@ if [ -f $userlists ]; then
 
   while read -r line; do
       user="$line"
-      echo "Create user : $user"
-      ./keycloak/bin/kcadm.sh create users -r ${REALM} -s username=$user -s enabled=true
-      ./keycloak/bin/kcadm.sh set-password -r ${REALM} --username $user  --new-password $password --temporary
+      exist=$(./keycloak/bin/kcadm.sh get users -r ${REALM} -q username=$user)
+      if [ ${#exist} \> 3 ];
+      then
+        echo "Create user : $user"
+        ./keycloak/bin/kcadm.sh create users -r ${REALM} -s username=$user -s enabled=true
+        ./keycloak/bin/kcadm.sh set-password -r ${REALM} --username $user  --new-password $password --temporary
+      fi;
   done < "$userlists"
 fi
 
