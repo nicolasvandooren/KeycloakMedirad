@@ -11,6 +11,14 @@ Need to be specified
 
 Need to be specified
 
+### REALM
+
+Specify realm name (default: irdbb)
+
+### Client
+
+Specify the client (default: irdbb-ui)
+
 ### DB_VENDOR
 
 Supported values are :
