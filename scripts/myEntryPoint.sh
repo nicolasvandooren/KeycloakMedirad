@@ -22,11 +22,6 @@ sleep 10
 
 while [[ $LASTLINE != *"${substring}"* ]] ; do
   LASTLINE=$(tac log |egrep -m 1 .)
-  if grep -R "ERROR" log > /dev/null
-  then
-    cat log
-    exit 1
-  fi
 done
 
 echo ""
