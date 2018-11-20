@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: password
 
   keycloak:
-    image: "nicolasvandooren/keycloakmedirad:v1.0.1"
+    image: "nicolasvandooren/keycloakmedirad:1.0.1"
     ports:
       - "8880:8080"
       - "8843:8443"
