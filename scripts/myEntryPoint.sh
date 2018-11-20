@@ -56,7 +56,7 @@ if [ -f $userlists ]; then
   while read -r line; do
       user="$line"
       exist=$(./keycloak/bin/kcadm.sh get users -r ${REALM} -q username=$user)
-      if [ ${#exist} \> 3 ];
+      if [ ${#exist} -le 3 ];
       then
         echo "Create user : $user"
         ./keycloak/bin/kcadm.sh create users -r ${REALM} -s username=$user -s enabled=true
@@ -64,5 +64,7 @@ if [ -f $userlists ]; then
       fi;
   done < "$userlists"
 fi
+
+tail -f /opt/jboss/log
 
 wait $PID
