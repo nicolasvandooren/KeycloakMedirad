@@ -40,8 +40,10 @@ echo ""
 REALMS_PRESENTS="$(./keycloak/bin/kcadm.sh get realms --fields realm --format csv --noquotes)"
 
 if [[ ! $REALMS_PRESENTS = *"${REALM}"* ]] ; then
+  echo "Create Realm : $REALM"
   ./keycloak/bin/kcadm.sh create realms -s realm=${REALM} -s enabled=true -s sslRequired=NONE
-  ./keycloak/bin/kcadm.sh create clients -r ${REALM} -s clientId=${CLIENT} -s enabled=true -s publicClient=true -s 'webOrigins=["'${WEBORIGINS}'"]' -s 'redirectUris=["'${REDIRECTURIS}'"]'
+  echo "Create Client : $CLIENT"
+  ./keycloak/bin/kcadm.sh create clients -r ${REALM} -s clientId=${CLIENT} -s enabled=true -s publicClient=false -s 'webOrigins=["'${WEBORIGINS}'"]' -s 'redirectUris=["'${REDIRECTURIS}'"]' -s secret="${CLIENT_SECRET}"
 fi
 
 userlists=/run/secrets/users_lists
