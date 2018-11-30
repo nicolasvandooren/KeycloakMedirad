@@ -1,11 +1,11 @@
 #!/bin/sh
+if [ -f /run/secrets/db_password ]; then
+  export DB_PASSWORD=$(cat /run/secrets/db_password)
+fi
 
 ./tools/docker-entrypoint.sh -b 0.0.0.0 > log &
 
 PID=$!
-
-LASTLINE=$(tac log |egrep -m 1 .)
-substring="[org.jboss.as] (Controller Boot Thread) WFLYSRV0025: Keycloak 4.5.0.Final (WildFly Core 5.0.0.Final) started"
 
 if [[ -z "${REALM}" ]]; then
   REALM=irdbb
@@ -24,6 +24,9 @@ if [[ -z "${WEBORIGINS}" ]]; then
 fi
 
 sleep 10
+
+LASTLINE=$(tac log |egrep -m 1 .)
+substring="[org.jboss.as] (Controller Boot Thread) WFLYSRV0025: Keycloak 4.5.0.Final (WildFly Core 5.0.0.Final) started"
 
 while [[ $LASTLINE != *"${substring}"* ]] ; do
   LASTLINE=$(tac log |egrep -m 1 .)
@@ -44,25 +47,37 @@ if [[ ! $REALMS_PRESENTS = *"${REALM}"* ]] ; then
   ./keycloak/bin/kcadm.sh create clients -r ${REALM} -s clientId=${CLIENT} -s enabled=true -s publicClient=true -s 'webOrigins=["'${WEBORIGINS}'"]' -s 'redirectUris=["'${REDIRECTURIS}'"]'
 fi
 
-userlists=/run/secrets/users_lists
-firstpassword=/run/secrets/users_password
-if [ -f $userlists ]; then
-  if [ -f $firstpassword ]; then
-    password=$(cat $firstpassword)
-  else
-    password=changeme
-  fi
+users_lists=/run/secrets/users_lists
+if [ -f $users_lists ]; then
 
-  while read -r line; do
-      user="$line"
-      exist=$(./keycloak/bin/kcadm.sh get users -r ${REALM} -q username=$user)
-      if [ ${#exist} -le 3 ];
-      then
-        echo "Create user : $user"
-        ./keycloak/bin/kcadm.sh create users -r ${REALM} -s username=$user -s enabled=true
-        ./keycloak/bin/kcadm.sh set-password -r ${REALM} --username $user  --new-password $password --temporary
-      fi;
-  done < "$userlists"
+  #TODO: Improve this loop
+  IFS=,
+  sed 1d $users_lists | while read -r username email firstName lastName password
+  do
+    exist=$(./keycloak/bin/kcadm.sh get users -r ${REALM} -q username=$username)
+    if [ ${#exist} -le 3 ]
+    then
+      cmd='./keycloak/bin/kcadm.sh create users -r '${REALM}' -s enabled=true'
+      if [[ ! -z "$username" ]]; then
+        cmd+=' -s username='$username
+      fi
+
+      if [[ ! -z "$email" ]]; then
+        cmd+=' -s email='$email
+      fi
+
+      if [[ ! -z "$firstName" ]]; then
+        cmd+=' -s firstName='$firstName
+      fi
+
+      if [[ ! -z "$lastName" ]]; then
+        cmd+=' -s lastName='$lastName
+      fi
+      eval $cmd
+      ./keycloak/bin/kcadm.sh set-password -r ${REALM} --username ${username}  --new-password ${password} --temporary
+    fi
+  done
+
 fi
 
 tail -f /opt/jboss/log

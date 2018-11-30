@@ -12,7 +12,9 @@ services:
       POSTGRES_PASSWORD: password
 
   keycloak:
-    image: "nicolasvandooren/keycloakmedirad:1.0.1"
+    #image: "nicolasvandooren/keycloakmedirad:1.0.1"
+    image: mykeycloak:latest
+    container_name: mykeycloak
     ports:
       - "8880:8080"
       - "8843:8443"
@@ -36,14 +38,16 @@ services:
       options:
         max-size: "10m"
     secrets:
-      - users_password
       - users_lists
+      - db_password
 
 secrets:
   users_password:
     file: secrets/users_password
   users_lists:
     file: secrets/users_lists
+  db_password:
+    file: secrets/db_password
 
 volumes:
   keycloak-standalone:
